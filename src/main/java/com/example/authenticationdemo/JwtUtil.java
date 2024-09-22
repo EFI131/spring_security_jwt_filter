@@ -21,7 +21,7 @@ public class JwtUtil {
     private final SecretKeyProvider secretKeyProvider;
     private final JwtParser parser;
 
-    private final long tokenDurationInSeconds = 2 * 60;
+    private final long tokenDurationInSeconds = 7 * 60;
     private final long refreshDurationInSeconds = 15 * 60;
 
     public JwtUtil(SecretKeyProvider secretKeyProvider) {

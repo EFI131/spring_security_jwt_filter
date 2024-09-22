@@ -60,7 +60,9 @@ public class JwtAuthenticationConverter implements AuthenticationConverter {
         return UsernamePasswordAuthenticationToken
                 .authenticated(claims.get("username"), token,
                 roles.stream().map(r->new SimpleGrantedAuthority((String)r)).collect(Collectors.toList()));
-        } catch(JwtException| IllegalArgumentException |ClassCastException ex) {
+        }
+        catch(JwtException| IllegalArgumentException |ClassCastException ex) {
+            // TODO: consider a more fine grained approach for exception handling
             throw new BadCredentialsException(ex.getMessage());   
         }
     }

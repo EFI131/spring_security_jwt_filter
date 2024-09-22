@@ -20,6 +20,4 @@ public class WebController {
     public String getError() {
         return "got error";
     }
-    
-
 }
