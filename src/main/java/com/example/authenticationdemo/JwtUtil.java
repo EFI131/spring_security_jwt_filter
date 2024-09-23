@@ -48,6 +48,7 @@ public class JwtUtil {
         return Jwts.builder()
                     .subject(username)
                     .claim("roles", roles)
+                    .claim("type", "access")
                     .issuedAt(Date.from(creation))
                     .expiration(Date.from(expiration))
                     .signWith(secretKeyProvider.getSecretKey())
@@ -61,9 +62,14 @@ public class JwtUtil {
         return Jwts.builder()
                     .subject(username)
                     .claim("roles", roles)
+                    .claim("type", refresh? "refresh" : "access")
                     .issuedAt(Date.from(creation))
                     .expiration(Date.from(expiration))
                     .signWith(secretKeyProvider.getSecretKey())
                     .compact();
+    }
+
+    public String getSub(String token) {
+        return parser.parseSignedClaims(token).getPayload().getSubject();
     }
 }

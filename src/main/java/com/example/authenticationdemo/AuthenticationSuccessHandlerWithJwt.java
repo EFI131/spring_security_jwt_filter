@@ -3,7 +3,6 @@ package com.example.authenticationdemo;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -34,6 +33,17 @@ public class AuthenticationSuccessHandlerWithJwt implements AuthenticationSucces
                 
                 Cookie cookie = new Cookie("token", token);
                 cookie.setHttpOnly(true);
-                response.addCookie(cookie); 
+                response.addCookie(cookie);
+                
+               // generate refresh token
+                String refresh = jwtUtil
+                .getJwtFor(authentication.getName(), 
+                                    authentication.getAuthorities().stream()
+                                                    .map(a->a.getAuthority())
+                                                    .collect(Collectors.toSet()), true);
+
+                Cookie refreshCookie = new Cookie("refresh-token", refresh);
+                cookie.setHttpOnly(true);
+                response.addCookie(refreshCookie);
     }
 }
