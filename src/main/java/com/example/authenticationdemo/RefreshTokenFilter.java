@@ -10,25 +10,19 @@ import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-
-/**
- * The below filter:
- * 1) creates a jwt derived from a present authenticated authentication at the security context holder
- * 2) authenticates given a jwt access token in the Authorizaiton header
- * 3) creates and returns a jwt access token if given a refresh token as a value of a 'refress' cookie, and the uri is /refresh 
- */
-public class JwtFilter extends OncePerRequestFilter {
-
-    private final JwtAuthenticationConverter authenticationConverter;
+public class RefreshTokenFilter extends OncePerRequestFilter{
+    
+    private final RefreshAuthenticationConverter authenticationConverter;
     private final AuthenticationEntryPoint authenticationEntryPoint;
     
-    public JwtFilter(JwtUtil jwtUtil, AuthenticationEntryPoint authenticationEntryPoint){
-        this.authenticationConverter = new JwtAuthenticationConverter(jwtUtil);
+    public RefreshTokenFilter(JwtUtil jwtUtil, AuthenticationEntryPoint authenticationEntryPoint){
+        this.authenticationConverter = new RefreshAuthenticationConverter(jwtUtil);
         this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
@@ -54,7 +48,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 // Set jwt derived authentication into security context holder 
                 SecurityContext securityContext = securityContextHolderStrategy.createEmptyContext();
                 securityContext.setAuthentication(auth);
-                securityContextHolderStrategy.setContext(securityContext);
+                SecurityContextHolder.setContext(securityContext);
 
                 // proceed with filter chain
                 filterChain.doFilter(request, response);
@@ -62,7 +56,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
             } catch(AuthenticationException ex){
                 authenticationEntryPoint.commence(request, response, ex);
-                //response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                 if(this.logger.isDebugEnabled()) {
                     this.logger.error(ex.getMessage(), ex);
                 }

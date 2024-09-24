@@ -5,20 +5,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationConverter;
-import org.springframework.util.StringUtils;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
-public class JwtRefreshAuthenticationConverter implements AuthenticationConverter {
+public class RefreshAuthenticationConverter implements AuthenticationConverter {
 /**
  * Converts from a HttpServletRequest to {@link Authentication} 
  * Our approach is more aggresive as we are assumming that the resquest is indeeed to the refresh path
@@ -28,7 +25,7 @@ public class JwtRefreshAuthenticationConverter implements AuthenticationConverte
 
     private final JwtUtil jwtUtil;
 
-    public JwtRefreshAuthenticationConverter(JwtUtil jwtUtil){
+    public RefreshAuthenticationConverter(JwtUtil jwtUtil){
         this.jwtUtil = jwtUtil;
     }
 
@@ -52,13 +49,17 @@ public class JwtRefreshAuthenticationConverter implements AuthenticationConverte
             String token =  cookie.getValue();
             Map<String, ?> claims = jwtUtil.getClaims(token);
             Object rolesObject = claims.get("roles");
-            
-            
             List<String> roles = ((List<String>)((List<?>) rolesObject));
-            return UsernamePasswordAuthenticationToken
-                    .authenticated(claims.get("username"), token,
-                    roles.stream().map(r->new SimpleGrantedAuthority((String)r)).collect(Collectors.toList()));
-        } catch(JwtException| IllegalArgumentException |ClassCastException ex) {
+            String type = (String)claims.get("type");
+
+            if(!"refresh".equals(type))
+                throw new BadCredentialsException("must be a refresh token"); 
+            
+            return JwtAuthenticationToken
+                    .authenticated(claims.get("sub"), token,
+                    roles.stream().map(r->new SimpleGrantedAuthority((String)r)).collect(Collectors.toList()), type);
+
+        } catch(JwtException | IllegalArgumentException | ClassCastException ex) {
             throw new BadCredentialsException(ex.getMessage());   
         }
     }
